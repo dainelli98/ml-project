@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Any
 
 import tomli
-from lightgbm import LGBMRegressor
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 
 # Import model classes
@@ -53,7 +52,6 @@ def get_model_class(model_name: str) -> type:
         "LinearRegression": LinearRegression,
         "RandomForestRegressor": RandomForestRegressor,
         "GradientBoostingRegressor": GradientBoostingRegressor,
-        "LGBMRegressor": LGBMRegressor,
     }
 
     if model_name not in model_classes:

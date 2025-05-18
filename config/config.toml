@@ -4,7 +4,6 @@ models = [
   "LinearRegression",
   "RandomForestRegressor",
   "GradientBoostingRegressor",
-  "LGBMRegressor",
 ]
 
 
@@ -26,28 +25,17 @@ max_depth = [3, 5, 7, 9]
 subsample = [0.7, 0.8, 0.9, 1.0]
 random_state = 42
 
-[modelling.hyperparameters.LGBMRegressor]
-n_estimators = [50, 100, 200, 300]
-learning_rate = [0.01, 0.05, 0.1, 0.2]
-max_depth = [3, 4, 6, 8]
-num_leaves = [20, 31, 50, 80]
-subsample = [0.6, 0.7, 0.8, 0.9]
-colsample_bytree = [0.6, 0.7, 0.8, 0.9]
-reg_alpha = [0, 0.1, 0.5]
-reg_lambda = [0, 0.1, 0.5]
-random_state = 42
-
 [feature_selection]
 features = [
-  "Price",       # Price of carseats
-  "Income",      # Income of the area
-  "Advertising", # Local advertising budget
-  "Population",  # Population size in the area
-  "Age",         # Average age in area
-  "Education",   # Education level in area
-  "ShelveLoc",   # Quality of shelving location
-  "Urban",       # Urban location (yes/no)
-  "US",          # US location (yes/no)
-  "Competitors", # Number of competitors
+  "price",       # Price of carseats
+  "income",      # Income of the area
+  "advertising", # Local advertising budget
+  "population",  # Population size in the area
+  "age",         # Average age in area
+  "education",   # Education level in area
+  "shelve_loc",  # Quality of shelving location
+  "urban",       # Urban location (yes/no)
+  "us",          # US location (yes/no)
+  "comp_price",  # Number of competitors
 ]
-target = "Sales" # Target variable
+target = "sales" # Target variable

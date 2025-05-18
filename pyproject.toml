@@ -14,7 +14,6 @@ classifiers = [
 
 dependencies = [
   "jupyter",
-  "lightgbm>=4.6.0",
   "loguru>=0.7.3",
   "polars>=1.29.0",
   "pydantic",
@@ -31,6 +30,7 @@ docs = ["mkdocs", "mkdocs-material", "mkdocs-section-index"]
 [project.scripts]
 extract-data = "ml_project.scripts.extract_data:main"
 preprocess-data = "ml_project.scripts.preprocess_data:main"
+prepare-data = "ml_project.scripts.prepare_data:main"
 
 [build-system]
 requires = ["hatchling"]
