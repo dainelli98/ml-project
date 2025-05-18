@@ -80,17 +80,33 @@ There are some actions that run on this project by default:
     ├── Dockerfile         <- Create a Docker image for this project.
     ├── README.md          <- The top-level README for developers using this project.
     ├── data               <- The data folder for this project. This is always ignored by git by design.
-    │  
+    │
     ├── docs               <- A default mkdocs project.
     │
     ├── models             <- Trained and serialized models, model predictions, or model summaries.
     │
     ├── notebooks          <- Jupyter notebooks. Please ensure the output is stripped out of any
     confidential information.
-    │  
+    │
     ├── Dockerfile         <- A generic Dockerfile to help you get started.
     ├── ml_project                <- Source code for use in this project.
     │
+```
+
+--------
+
+## Commands
+
+### Data Extraction
+
+You can extract raw data and save it to a CSV file using the following command:
+
+```shell
+# Basic usage - saves to data/raw_data.csv
+ml-project extract-data save-raw-data
+
+# Get help
+ml-project extract-data save-raw-data --help
 ```
 
 --------
