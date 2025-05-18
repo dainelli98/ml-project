@@ -1,6 +1,7 @@
 .git
 .cache
-*.md
+# *.md
+!README.md
 slides
 .DS_Store
 .dockerignore

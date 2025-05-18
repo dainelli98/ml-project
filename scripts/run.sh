@@ -60,10 +60,10 @@ while [[ $# -gt 0 ]]; do
         pipeline)
             # Run full pipeline sequentially
             echo "Running full training pipeline..."
-            python ml_project/scripts/extract_data.py
-            python ml_project/scripts/prepare_data.py
-            python ml_project/scripts/preprocess_data.py
-            python ml_project/scripts/train_model.py
+            .venv/bin/python ml_project/scripts/extract_data.py
+            .venv/bin/python ml_project/scripts/preprocess_data.py
+            .venv/bin/python ml_project/scripts/prepare_data.py
+            .venv/bin/python ml_project/scripts/train_model.py
             echo "Training pipeline completed successfully!"
             exit 0
             ;;
@@ -89,4 +89,4 @@ fi
 
 # Run the specified script with any provided arguments
 echo "Running: python $SCRIPT $ARGS"
-python $SCRIPT $ARGS
+.venv/bin/python $SCRIPT $ARGS
