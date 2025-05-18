@@ -12,7 +12,14 @@ classifiers = [
   "Typing :: Typed",
 ]
 
-dependencies = ["jupyter", "pydantic", "pymdown-extensions", "typer"]
+dependencies = [
+  "jupyter",
+  "loguru>=0.7.3",
+  "polars>=1.29.0",
+  "pydantic",
+  "pymdown-extensions",
+  "typer",
+]
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "pytest-mock", "pytest-reportlog"]
