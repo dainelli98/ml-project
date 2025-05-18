@@ -88,9 +88,65 @@ There are some actions that run on this project by default:
     ├── notebooks          <- Jupyter notebooks. Please ensure the output is stripped out of any
     confidential information.
     │
-    ├── Dockerfile         <- A generic Dockerfile to help you get started.
-    ├── ml_project                <- Source code for use in this project.
+    ├── scripts            <- Helper scripts for running the project.
     │
+    ├── ml_project         <- Source code for use in this project.
+    │
+```
+
+--------
+
+## Docker Usage
+
+This project can be run in a Docker container for reproducibility and ease of use. The Docker setup includes mounting of data and model directories to ensure persistence of data and trained models.
+
+### Building the Docker Image
+
+```shell
+make docker-build
+```
+
+### Running the Full Training Pipeline
+
+```shell
+make docker-pipeline
+```
+
+### Running Individual Steps
+
+You can run each step of the pipeline individually:
+
+```shell
+# Extract data
+make docker-extract
+
+# Prepare data
+make docker-prepare
+
+# Preprocess data
+make docker-preprocess
+
+# Train models
+make docker-train
+
+# Run inference
+make docker-inference args="--model-file models/GradientBoostingRegressor_best_model.pkl --input-file data/x_test.csv"
+```
+
+### Custom Commands
+
+For running custom commands:
+
+```shell
+make docker-run cmd="extract -- --output data/custom_raw_data.csv"
+```
+
+### Interactive Shell
+
+To get an interactive shell inside the container:
+
+```shell
+make docker-shell
 ```
 
 --------
