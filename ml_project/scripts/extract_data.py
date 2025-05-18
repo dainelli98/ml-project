@@ -9,8 +9,6 @@ from loguru import logger
 from ml_project.data_extraction import fetch_carseats_data
 from ml_project.data_storage import save_data_to_csv
 
-data_extraction = typer.Typer(help="Extract and save data")
-
 # Define options as module-level variables
 OUTPUT_FILE_OPTION = typer.Option(
     Path("data/raw_data.csv"),
@@ -30,38 +28,22 @@ OVERWRITE_OPTION = typer.Option(
     "-w",
     help="Overwrite existing file if it exists",
 )
-VERBOSE_OPTION = typer.Option(
-    False,
-    "--verbose",
-    "-v",
-    help="Enable verbose logging",
-)
 
 
-@data_extraction.command()
 def extract_data(
     output_file: Path = OUTPUT_FILE_OPTION,
     lazy: bool = LAZY_OPTION,
     overwrite: bool = OVERWRITE_OPTION,
-    verbose: bool = VERBOSE_OPTION,
 ) -> None:
     """Extract raw carseats data and save it to a CSV file.
 
     This command fetches car seats data from the web and saves it to the specified path.
     By default, it saves to 'data/raw_data.csv' in the project root directory.
     """
-    if verbose:
-        logger.remove()
-        logger.add(lambda msg: typer.echo(msg, err=True), level="DEBUG")
-    else:
-        logger.remove()
-        logger.add(lambda msg: typer.echo(msg, err=True), level="INFO")
-
     # Log parameters
     logger.debug(f"Output file: {output_file}")
     logger.debug(f"Lazy loading: {lazy}")
     logger.debug(f"Overwrite: {overwrite}")
-    logger.debug(f"Verbose: {verbose}")
 
     try:
         # Fetch data
@@ -84,5 +66,10 @@ def extract_data(
         raise typer.Exit(code=1) from e
 
 
+def main() -> None:
+    """Entrypoint for the preprocess script."""
+    typer.run(extract_data)
+
+
 if __name__ == "__main__":
-    data_extraction()
+    main()

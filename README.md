@@ -95,22 +95,6 @@ There are some actions that run on this project by default:
 
 --------
 
-## Commands
-
-### Data Extraction
-
-You can extract raw data and save it to a CSV file using the following command:
-
-```shell
-# Basic usage - saves to data/raw_data.csv
-ml-project extract-data save-raw-data
-
-# Get help
-ml-project extract-data save-raw-data --help
-```
-
---------
-
 ## Set up Documentation Web Page
 
 You can get your project documentation as a github website out of the box using this template.

@@ -26,7 +26,8 @@ dev = ["pytest", "pytest-cov", "pytest-mock", "pytest-reportlog"]
 docs = ["mkdocs", "mkdocs-material", "mkdocs-section-index"]
 
 [project.scripts]
-ml-project = "ml_project.__main__:main"
+extract-data = "ml_project.scripts.extract_data:main"
+preprocess-data = "ml_project.scripts.preprocess_data:main"
 
 [build-system]
 requires = ["hatchling"]
