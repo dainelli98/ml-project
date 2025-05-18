@@ -31,6 +31,7 @@ docs = ["mkdocs", "mkdocs-material", "mkdocs-section-index"]
 extract-data = "ml_project.scripts.extract_data:main"
 preprocess-data = "ml_project.scripts.preprocess_data:main"
 prepare-data = "ml_project.scripts.prepare_data:main"
+train-model = "ml_project.scripts.train_model:main"
 
 [build-system]
 requires = ["hatchling"]
