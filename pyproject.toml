@@ -32,7 +32,7 @@ extract-data = "ml_project.scripts.extract_data:main"
 preprocess-data = "ml_project.scripts.preprocess_data:main"
 prepare-data = "ml_project.scripts.prepare_data:main"
 train-model = "ml_project.scripts.train_model:main"
-inference = "ml_project.scripts.inference:main"
+inference = "ml_project.scripts.run_inference:main"
 
 [build-system]
 requires = ["hatchling"]
