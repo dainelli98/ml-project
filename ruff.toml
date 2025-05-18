@@ -1,0 +1,159 @@
+line-length = 120
+
+force-exclude = true
+
+target-version = "py312"
+
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+
+builtins = ["__version__"]
+
+[format]
+quote-style = "double"
+
+indent-style = "space"
+
+skip-magic-trailing-comma = false
+
+line-ending = "auto"
+
+docstring-code-format = true
+
+docstring-code-line-length = 120
+
+[lint]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+select = [
+  "E",
+  "F",
+  "W",
+  "I",
+  "B",
+  "ARG",
+  "C",
+  "N",
+  "D",
+  "UP",
+  "ANN",
+  "ASYNC",
+  "S",
+  "A",
+  "COM",
+  "FA",
+  "ISC",
+  "ICN",
+  "LOG",
+  "INP",
+  "PIE",
+  "PYI",
+  "Q",
+  "RET",
+  "SLF",
+  "SLOT",
+  "SIM",
+  "PL",
+  "R",
+  "TRY",
+  "FLY",
+  "PERF",
+  "FURB",
+  "RUF",
+  "TID",
+  "T",
+]
+ignore = [
+  "N818",
+  "D100",
+  "D205",
+  "D103",
+  "D101",
+  "D102",
+  "D107",
+  "D104",
+  "D105",
+  "UP040",
+  "ANN002",
+  "ASYNC109",
+  "ANN003",
+  "ANN202",
+  "ANN204",
+  "ANN401",
+  "F401",
+  "S101",
+  "S324",
+  "S113",
+  "COM812",
+  "ISC001",
+  "SIM112",
+  "PLR0911",
+  "PLR0912",
+  "PLR2004",
+  "PLW0603",
+  "TRY400",
+  "TRY003",
+  "TRY002",
+  "TRY300",
+  "TRY004",
+  "TRY301",
+  "S311",
+  "D301",
+]
+
+[lint.per-file-ignores]
+"tests/*" = [
+  "PT005",
+  "N802",
+  "N801",
+  "D",
+  "S",
+  "ANN",
+  "A",
+  "INP",
+  "PIE",
+  "T201",
+  "SLF",
+  "PL",
+  "TRY",
+  "ARG001",
+]
+
+[lint.pylint]
+max-args = 10
+
+[lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[lint.pep8-naming]
+ignore-names = ["i", "j", "k", "ex", "Run", "_", "df", "fp", "id", "x", "y"]
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.mccabe]
+max-complexity = 10
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"

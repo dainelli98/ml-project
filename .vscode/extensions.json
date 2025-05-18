@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-vscode.vscode-node-azure-pack",
+    "esbenp.prettier-vscode",
+    "charliermarsh.ruff",
+    "yzhang.markdown-all-in-one",
+    "42crunch.vscode-openapi",
+    "redhat.vscode-yaml"
+  ]
+}

@@ -1,0 +1,45 @@
+default_language_version:
+  python: python3.12
+repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.7.5
+    hooks:
+      - id: uv-lock
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: pretty-format-json
+        args: [--autofix]
+      - id: check-json
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: "v0.11.10"
+    hooks:
+      - id: ruff-format
+      - id: ruff
+        args: [--fix]
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+  - repo: https://github.com/jorisroovers/gitlint
+    rev: v0.19.1
+    hooks:
+      - id: gitlint
+        args:
+          [
+            --contrib=CT1,
+            --ignore=title-trailing-punctuation,
+            --ignore=T3,
+            --ignore=B6,
+            --msg-filename,
+          ]
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      - id: taplo-format
