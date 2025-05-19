@@ -5,6 +5,7 @@ run inference on new data, and save the predictions to a CSV file.
 """
 
 import os
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -101,6 +102,9 @@ def inference(
             logger.info(f"Loading data from {data_file}...")
             data = pl.read_csv(data_file)
 
+            # Log input data as MLflow artifact using a temporary file
+            _log_input_data(data)
+
             # Run inference
             logger.info(f"Running inference with model on {len(data)} samples...")
             predictions = run_inference(
@@ -123,12 +127,28 @@ def inference(
             mlflow.log_artifact(str(output_file))
 
             typer.secho(
-                f"✅ Inference completed successfully! Predictions saved to {output_file} and logged to MLflow",
+                "✅ Inference completed successfully! Input data and predictions saved and logged to MLflow",
                 fg=typer.colors.GREEN,
             )
     except Exception as e:
         logger.error(f"Error: {e}")
         raise typer.Exit(code=1) from e
+
+
+def _log_input_data(data: pl.DataFrame) -> None:
+    """Log input data as an MLflow artifact.
+
+    Args:
+        data: Polars DataFrame containing the input data.
+    """
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tmp_input:
+        data.write_csv(tmp_input.name)
+        logger.info(f"Logging input data to MLflow as artifact: {tmp_input.name}")
+        mlflow.log_artifact(tmp_input.name, artifact_path="input_data")
+    try:
+        os.remove(tmp_input.name)
+    except Exception as cleanup_err:
+        logger.warning(f"Could not remove temporary input data file: {cleanup_err}")
 
 
 def main() -> None:
