@@ -9,6 +9,9 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 # Import model classes
 from sklearn.linear_model import LinearRegression
 
+# MLflow tracking server URL
+MLFLOW_TRACKING_URI = "http://localhost:5000"
+
 
 def read_config(config_path: str | Path | None = None) -> dict[str, Any]:
     """Read the configuration file and return it as a dictionary.

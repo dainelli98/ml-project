@@ -6,7 +6,7 @@
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-PYTHON_INTERPRETER=python
+PYTHON_INTERPRETER=uv run python
 ifeq (,$(shell which uv))
 HAS_UV=False
 else
@@ -32,6 +32,10 @@ init:
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
+
+## Start MLflow server on localhost:5000
+mlflow-server:
+	$(PYTHON_INTERPRETER) -m mlflow ui --host 0.0.0.0 --port 5000
 
 #################################################################################
 # DOCKER COMMANDS                                                              #
