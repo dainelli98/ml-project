@@ -16,7 +16,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          uv sync --dev --frozen
+          uv sync --dev --frozen --all-extras
       - name: Run ruff
         shell: bash
         run: |
