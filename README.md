@@ -6,6 +6,10 @@
 
 --------
 
+## Overview
+
+This project includes MLFlow integration for experiment tracking, model registry, feature store, and data drift detection. For detailed usage instructions, see [MLFlow Integration Guide](docs/mlflow_integration.md).
+
 ## Important
 
 Please always create a separate environment for your project. There is a handy utility provided that could do

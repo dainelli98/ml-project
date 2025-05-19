@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 
+# MLFlow
+mlruns/**
+mlartifacts/**
+
 # C extensions
 *.so
 
