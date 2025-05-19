@@ -5,21 +5,23 @@ run inference on new data, and save the predictions to a CSV file.
 """
 
 import os
-import pickle
 from pathlib import Path
 
+import mlflow
+import mlflow.sklearn
 import polars as pl
 import typer
 from loguru import logger
 
 from ml_project.inference import run_inference, save_predictions
+from ml_project.utils import MLFLOW_TRACKING_URI
 
 # Define options as module-level variables
-MODEL_FILE_OPTION = typer.Option(
+MODEL_NAME_OPTION = typer.Option(
     ...,  # Required
-    "--model-file",
-    "-m",
-    help="Path to the trained model pickle file",
+    "--model-name",
+    "-n",
+    help="Name of the model in MLflow Model Registry",
 )
 DATA_FILE_OPTION = typer.Option(
     ...,  # Required
@@ -42,10 +44,9 @@ MODEL_NAME_OPTION = typer.Option(
 
 
 def inference(
-    model_file: Path = MODEL_FILE_OPTION,
+    model_name: str = MODEL_NAME_OPTION,
     data_file: Path = DATA_FILE_OPTION,
     output_file: Path = OUTPUT_FILE_OPTION,
-    model_name: str = MODEL_NAME_OPTION,
 ) -> None:
     """Run inference with a trained model on new data.
 
@@ -53,17 +54,15 @@ def inference(
     from a CSV file, runs inference, and saves the predictions to a CSV file.
     """
     # Log parameters
-    logger.debug(f"Model file: {model_file}")
+    logger.debug(f"Model name: {model_name}")
     logger.debug(f"Data file: {data_file}")
     logger.debug(f"Output file: {output_file}")
-    logger.debug(f"Model name: {model_name}")
 
     try:
         # Convert relative paths to absolute paths
         project_root = Path(os.getcwd())
 
         paths = {
-            "model_file": model_file,
             "data_file": data_file,
             "output_file": output_file,
         }
@@ -74,14 +73,10 @@ def inference(
                 paths[key] = project_root / path
 
         # Unpack for clarity
-        model_file = paths["model_file"]
         data_file = paths["data_file"]
         output_file = paths["output_file"]
 
         # Ensure input files exist
-        if not model_file.exists():
-            logger.error(f"Model file {model_file} doesn't exist")
-            raise typer.Exit(code=1)
         if not data_file.exists():
             logger.error(f"Data file {data_file} doesn't exist")
             raise typer.Exit(code=1)
@@ -89,10 +84,11 @@ def inference(
         # Ensure output directory exists
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        # Load model
-        logger.info(f"Loading model from {model_file}...")
-        with open(model_file, "rb") as f:
-            model = pickle.load(f)
+        # Load model from MLflow Model Registry
+        logger.info(f"Loading model '{model_name}' from MLflow Model Registry...")
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        model_uri = f"models:/{model_name}/latest"
+        model = mlflow.sklearn.load_model(model_uri)
 
         # Load data
         logger.info(f"Loading data from {data_file}...")

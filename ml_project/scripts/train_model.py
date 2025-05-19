@@ -2,15 +2,19 @@
 
 import json
 import os
-import pickle
+from datetime import datetime
 from pathlib import Path
+from typing import Any
 
+import mlflow
+import mlflow.models
+import mlflow.sklearn
 import polars as pl
 import typer
 from loguru import logger
 
 from ml_project.model_training import compute_metrics, tune_hyperparameters
-from ml_project.utils import read_config
+from ml_project.utils import MLFLOW_TRACKING_URI, read_config
 
 # Define options as module-level variables
 X_TRAIN_FILE_OPTION = typer.Option(
@@ -81,7 +85,7 @@ OVERWRITE_OPTION = typer.Option(
 )
 
 
-def train(  # noqa: PLR0913
+def train(
     x_train_file: Path = X_TRAIN_FILE_OPTION,
     y_train_file: Path = Y_TRAIN_FILE_OPTION,
     x_test_file: Path = X_TEST_FILE_OPTION,
@@ -135,38 +139,73 @@ def train(  # noqa: PLR0913
         y_test = pl.read_csv(y_test_file)
         y_test = y_test[target_col]
 
-        # Tune hyperparameters
-        logger.info(f"Tuning hyperparameters for model {model_name}...")
-        best_model, grid_search = tune_hyperparameters(
-            x_train=x_train,
-            y_train=y_train,
-            model_name=model_name,
-            config=config,
-            cv=cv,
-            scoring=scoring,
-            n_jobs=n_jobs,
-        )
+        # Set MLflow tracking URI
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        experiment_name = f"{model_name}_{timestamp}"
+        mlflow.set_experiment(experiment_name)
 
-        # Compute metrics on test set
-        logger.info("Evaluating model on test set...")
-        metrics = compute_metrics(
-            model=best_model,
-            x_test=x_test,
-            y_test=y_test,
-            log_results=True,
-        )
+        with mlflow.start_run(run_name=f"{model_name}_run"):
+            # Log parameters
+            mlflow.log_param("model_name", model_name)
+            mlflow.log_param("cv", cv)
+            mlflow.log_param("scoring", scoring)
+            mlflow.log_param("n_jobs", n_jobs)
 
-        # Save model, grid search results, and metrics
-        _save_results(best_model, grid_search, metrics, model_name, output_dir, results_dir, overwrite)
+            # Tune hyperparameters
+            logger.info(f"Tuning hyperparameters for model {model_name}...")
+            best_model, grid_search = tune_hyperparameters(
+                x_train=x_train,
+                y_train=y_train,
+                model_name=model_name,
+                config=config,
+                cv=cv,
+                scoring=scoring,
+                n_jobs=n_jobs,
+            )
 
-        typer.secho(
-            f"✅ Model successfully trained and saved to {output_dir}",
-            fg=typer.colors.GREEN,
-        )
-        typer.secho(
-            f"✅ Grid search results and metrics saved to {results_dir}",
-            fg=typer.colors.GREEN,
-        )
+            # Log best hyperparameters
+            mlflow.log_params(grid_search.best_params_)
+
+            # Compute metrics on test set
+            logger.info("Evaluating model on test set...")
+            metrics = compute_metrics(
+                model=best_model,
+                x_test=x_test,
+                y_test=y_test,
+                log_results=True,
+            )
+
+            # Log metrics
+            mlflow.log_metrics(metrics)
+
+            # Log grid search results as artifact
+            grid_search_file = results_dir / f"{model_name}_grid_search_results.csv"
+            # Save grid search results to CSV (reuse _save_results logic)
+            _save_grid_search_results(grid_search, grid_search_file)
+            mlflow.log_artifact(str(grid_search_file))
+
+            # Register the model in MLflow Model Registry with input_example and signature
+            logger.info("Logging and registering model to MLflow with input example and signature...")
+
+            input_example = x_train.head(5).to_pandas()
+            signature = mlflow.models.infer_signature(x_train.to_pandas(), best_model.predict(x_train.to_numpy()))
+            mlflow.sklearn.log_model(
+                sk_model=best_model,
+                artifact_path="model",
+                registered_model_name=model_name,
+                input_example=input_example,
+                signature=signature,
+            )
+
+            typer.secho(
+                f"✅ Model successfully trained and registered to MLflow as '{model_name}'",
+                fg=typer.colors.GREEN,
+            )
+            typer.secho(
+                "✅ Grid search results logged as MLflow artifact",
+                fg=typer.colors.GREEN,
+            )
     except Exception as e:
         logger.error(f"Error: {e}")
         raise typer.Exit(code=1) from e
@@ -239,74 +278,21 @@ def _setup_paths_and_validate(
                 raise typer.Exit(code=1)
 
 
-def _save_results(
-    best_model: object,
-    grid_search: object,
-    metrics: dict,
-    model_name: str,
-    output_dir: Path,
-    results_dir: Path,
-    overwrite: bool,
-) -> None:
-    """Save model as pickle and grid search results and metrics as CSV files."""
-    # Define output files
-    model_file = output_dir / f"{model_name}_best_model.pkl"
-    grid_search_file = results_dir / f"{model_name}_grid_search_results.csv"
-    metrics_file = results_dir / f"{model_name}_metrics.csv"
-
-    # Check if output files exist and if we should overwrite
-    if not overwrite:
-        for file_path, file_desc in [
-            (model_file, "Model"),
-            (grid_search_file, "Grid search results"),
-            (metrics_file, "Metrics"),
-        ]:
-            if file_path.exists():
-                logger.error(f"{file_desc} file {file_path} already exists. Use --overwrite to overwrite.")
-                raise typer.Exit(code=1)
-
-    # Save model
-    logger.info(f"Saving best model to {model_file}...")
-    with open(model_file, "wb") as f:
-        pickle.dump(best_model, f)
-
-    # Save grid search results as CSV
-    logger.info(f"Saving grid search results to {grid_search_file}...")
-
-    # Extract and save CV results to CSV
+def _save_grid_search_results(grid_search: Any, grid_search_file: Any) -> None:
     cv_results = grid_search.cv_results_
-
-    # Convert CV results to Polars DataFrame and save relevant info
     results_data = {}
-
-    # Add general scores
     for key in ["mean_test_score", "std_test_score", "rank_test_score"]:
         if key in cv_results:
             results_data[key] = cv_results[key]
-
-    # Add parameter values
     params_list = cv_results.get("params", [])
     for param_name in grid_search.best_params_.keys() if hasattr(grid_search, "best_params_") else []:
         results_data[f"param_{param_name}"] = [str(params.get(param_name, "")) for params in params_list]
-
-    # Create DataFrame and save
     cv_results_df = pl.DataFrame(results_data)
-
-    # Add best parameters as JSON string in a new column
     best_params_str = json.dumps(grid_search.best_params_)
     cv_results_df = cv_results_df.with_columns([pl.lit(best_params_str).alias("best_params")])
-
-    # Add best score
     if hasattr(grid_search, "best_score_"):
         cv_results_df = cv_results_df.with_columns([pl.lit(grid_search.best_score_).alias("best_score")])
-
-    # Save to CSV
     cv_results_df.write_csv(grid_search_file)
-
-    # Save metrics as CSV
-    logger.info(f"Saving metrics to {metrics_file}...")
-    metrics_df = pl.DataFrame([metrics])
-    metrics_df.write_csv(metrics_file)
 
 
 def main() -> None:
