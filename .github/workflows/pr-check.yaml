@@ -16,7 +16,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          uv sync --dev --frozen --all-extras
+          uv sync --frozen --all-extras
       - name: Run ruff
         shell: bash
         run: |
@@ -33,7 +33,7 @@ jobs:
       - name: Install packages
         shell: bash
         run: |
-          uv sync --dev --frozen
+          uv sync --frozen --all-extras
       - name: Pytest
         shell: bash
         run: |
