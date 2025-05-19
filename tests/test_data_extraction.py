@@ -30,8 +30,10 @@ def test_fetch_carseats_data_lazy(mock_scan_csv: MagicMock, mock_csv_data: str) 
         mock_scan_csv: Mock for polars scan_csv function.
         mock_csv_data: Mock CSV data fixture.
     """
+
     # Setup the mock
     mock_lazy_frame = MagicMock(spec=pl.LazyFrame)
+    mock_lazy_frame.shape = (3, 11)  # Add shape attribute to avoid AttributeError
     mock_scan_csv.return_value = mock_lazy_frame
 
     # Call the function
@@ -83,6 +85,7 @@ def test_fetch_carseats_data_with_env_url(
     with patch("ml_project.data_extraction.CARSEATS_RAW_DATA_URL", test_url):
         # Setup the mocks
         mock_lazy_frame = MagicMock(spec=pl.LazyFrame)
+        mock_lazy_frame.shape = (3, 11)  # Add shape attribute to avoid AttributeError
         mock_scan_csv.return_value = mock_lazy_frame
 
         # Call the function
