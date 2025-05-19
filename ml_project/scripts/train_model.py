@@ -7,8 +7,10 @@ from pathlib import Path
 from typing import Any
 
 import mlflow
+import mlflow.data
 import mlflow.models
 import mlflow.sklearn
+import pandas as pd
 import polars as pl
 import typer
 from loguru import logger
@@ -134,18 +136,28 @@ def train(
         target_col = config["feature_selection"]["target"]
         y_train = y_train[target_col]
 
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+
         logger.info(f"Reading test data from {x_test_file} and {y_test_file}...")
         x_test = pl.read_csv(x_test_file)
         y_test = pl.read_csv(y_test_file)
         y_test = y_test[target_col]
 
         # Set MLflow tracking URI
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         experiment_name = f"{model_name}_{timestamp}"
         mlflow.set_experiment(experiment_name)
 
-        with mlflow.start_run(run_name=f"{model_name}_run"):
+        with mlflow.start_run(run_name=f"{model_name}_run") as run:
+            # --- MLflow Dataset Logging: Store training data as a feature store ---
+            _log_training_data_to_mlflow(
+                x_train, y_train, target_col, run.info.run_id, name="training_data", context="training"
+            )
+            # Log test input dataset
+            _log_training_data_to_mlflow(
+                x_test, y_test, target_col, run.info.run_id, name="test_input_data", context="test_input"
+            )
+
             # Log parameters
             mlflow.log_param("model_name", model_name)
             mlflow.log_param("cv", cv)
@@ -169,12 +181,16 @@ def train(
 
             # Compute metrics on test set
             logger.info("Evaluating model on test set...")
+            predictions = best_model.predict(x_test.to_numpy())
             metrics = compute_metrics(
                 model=best_model,
                 x_test=x_test,
                 y_test=y_test,
                 log_results=True,
             )
+
+            # Log test output dataset (predictions)
+            _log_test_output_to_mlflow(x_test, predictions, target_col, run.info.run_id)
 
             # Log metrics
             mlflow.log_metrics(metrics)
@@ -293,6 +309,27 @@ def _save_grid_search_results(grid_search: Any, grid_search_file: Any) -> None:
     if hasattr(grid_search, "best_score_"):
         cv_results_df = cv_results_df.with_columns([pl.lit(grid_search.best_score_).alias("best_score")])
     cv_results_df.write_csv(grid_search_file)
+
+
+def _log_training_data_to_mlflow(
+    x_data: pl.DataFrame, y_data: pl.Series, target_col: str, run_id: str, name: str, context: str
+) -> None:
+    """Log a dataset (features + target) as an MLflow dataset using log_input."""
+    data = x_data.with_columns(y_data.rename(target_col))
+    data_pd = data.to_pandas()
+    dataset = mlflow.data.from_pandas(data_pd, name=name, targets=target_col)
+    mlflow.log_input(dataset, context=context)
+    logger.info(f"{name} logged to MLflow as input dataset for run {run_id} (context: {context})")
+
+
+def _log_test_output_to_mlflow(x_test: pl.DataFrame, predictions: pl.Series, target_col: str, run_id: str) -> None:
+    """Log test output predictions as an MLflow dataset using log_input."""
+    x_test_pd = x_test.to_pandas()
+    pred_df = pd.DataFrame(predictions, columns=[f"predicted_{target_col}"])
+    test_output_pd = pd.concat([x_test_pd.reset_index(drop=True), pred_df], axis=1)
+    dataset = mlflow.data.from_pandas(test_output_pd, name="test_output_data", targets=f"predicted_{target_col}")
+    mlflow.log_input(dataset, context="test_output")
+    logger.info(f"test_output_data logged to MLflow as input dataset for run {run_id} (context: test_output)")
 
 
 def main() -> None:
