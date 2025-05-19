@@ -5,6 +5,7 @@ run inference on new data, and save the predictions to a CSV file.
 """
 
 import os
+from datetime import datetime
 from pathlib import Path
 
 import mlflow
@@ -90,31 +91,41 @@ def inference(
         model_uri = f"models:/{model_name}/latest"
         model = mlflow.sklearn.load_model(model_uri)
 
-        # Load data
-        logger.info(f"Loading data from {data_file}...")
-        data = pl.read_csv(data_file)
+        # Set MLflow experiment name: prediction_{model_name}_{timestamp}
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        experiment_name = f"prediction_{model_name}_{timestamp}"
+        mlflow.set_experiment(experiment_name)
 
-        # Run inference
-        logger.info(f"Running inference with model on {len(data)} samples...")
-        predictions = run_inference(
-            model=model,
-            data=data,
-            model_name=model_name,
-            log_results=True,
-        )
+        with mlflow.start_run(run_name=f"prediction_{model_name}"):
+            # Load data
+            logger.info(f"Loading data from {data_file}...")
+            data = pl.read_csv(data_file)
 
-        # Save predictions
-        logger.info(f"Saving predictions to {output_file}...")
-        save_predictions(
-            predictions=predictions,
-            output_file=str(output_file),
-            log_results=True,
-        )
+            # Run inference
+            logger.info(f"Running inference with model on {len(data)} samples...")
+            predictions = run_inference(
+                model=model,
+                data=data,
+                model_name=model_name,
+                log_results=True,
+            )
 
-        typer.secho(
-            f"✅ Inference completed successfully! Predictions saved to {output_file}",
-            fg=typer.colors.GREEN,
-        )
+            # Save predictions
+            logger.info(f"Saving predictions to {output_file}...")
+            save_predictions(
+                predictions=predictions,
+                output_file=str(output_file),
+                log_results=True,
+            )
+
+            # Log predictions as MLflow artifact
+            logger.info(f"Logging predictions to MLflow as artifact: {output_file}")
+            mlflow.log_artifact(str(output_file))
+
+            typer.secho(
+                f"✅ Inference completed successfully! Predictions saved to {output_file} and logged to MLflow",
+                fg=typer.colors.GREEN,
+            )
     except Exception as e:
         logger.error(f"Error: {e}")
         raise typer.Exit(code=1) from e

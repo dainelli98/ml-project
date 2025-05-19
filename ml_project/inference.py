@@ -48,7 +48,7 @@ def save_predictions(predictions: np.ndarray, output_file: str, log_results: boo
     pred_df = pl.DataFrame({"prediction": predictions})
 
     # Save to CSV
-    pred_df.write_csv(output_file)
+    pred_df.write_csv(output_file, line_terminator=",\n")
 
     # Log saving process
     if log_results:
