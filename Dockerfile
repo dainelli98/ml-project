@@ -1,6 +1,4 @@
-FROM ubuntu:24.10 AS builder
-
-LABEL maintainer="krck360_azu"
+FROM ubuntu:25.10 AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -14,9 +12,9 @@ COPY --from=ghcr.io/astral-sh/uv:0.5.14 /uv /uvx /bin/
 # Install basic dependencies and keep ubuntu up to date:
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        curl \
-        ca-certificates \
         build-essential \
+        ca-certificates \
+        curl \
         wget \
     && apt-get upgrade -y \
     && apt-get autoremove -y \
@@ -30,15 +28,19 @@ WORKDIR ${APP_FOLDER}
 # We first install the uv dependencies without the app, to maximize layer reuse.
 COPY ./pyproject.toml ${APP_FOLDER}
 COPY ./uv.lock ${APP_FOLDER}
-RUN uv sync --frozen --no-dev --extra web --no-install-project --no-cache
+RUN uv sync --frozen --no-install-project --no-cache
 
 # Install project:
 COPY . ${APP_FOLDER}
-RUN uv sync --frozen --no-dev --extra web --no-cache
+RUN uv sync --frozen --no-cache
 
 FROM builder AS runtime
 
 WORKDIR ${APP_FOLDER}
 
-# Add your commands here:
-CMD [".venv/bin/python", ...]
+# Make the run script executable
+RUN chmod +x scripts/run.sh
+
+# Default command to show help
+ENTRYPOINT ["scripts/run.sh"]
+CMD ["--help"]

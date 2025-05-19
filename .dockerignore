@@ -1,6 +1,7 @@
 .git
 .cache
-*.md
+# *.md
+!README.md
 slides
 .DS_Store
 .dockerignore
@@ -11,6 +12,10 @@ Posts.xml
 __pycache__/
 *.py[cod]
 *$py.class
+
+# MLFlow
+mlruns/**
+mlartifacts/**
 
 # C extensions
 *.so
